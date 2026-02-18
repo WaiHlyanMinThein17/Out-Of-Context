@@ -4,8 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // Supabase client using environment variables (safe for pushing)
 const supabase = createClient(
-  process.env.REACT_APP_SUPABASE_URL,
-  process.env.REACT_APP_SUPABASE_ANON_KEY
+  'https://ialzxgcgkzvgxjzgglkc.supabase.co',
+  'sb_publishable_RC7ubywKk9G_vz0eiuBlPw_NwGnvuev'
 );
 
 // Temporarily changed function declaration for temp button to go btwn chat and voting 
