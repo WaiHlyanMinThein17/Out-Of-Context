@@ -37,6 +37,10 @@ def join_game(request):
         "status": supabase.table("games").select("status").eq("game_id", game_id).limit(1).execute().data[0]['status']
     })
 
+def game_start():
+    pass
+
+
 
 #const channel = supabase
 #  .channel('game-messages')

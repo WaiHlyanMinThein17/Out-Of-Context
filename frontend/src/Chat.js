@@ -40,6 +40,7 @@ function Chat() {
     };
     fetchExisting();
 
+	  console.log(gameData?.status)
     const channel = supabase
       .channel(`game-${gameData.game_id}`)
       .on(
