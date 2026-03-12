@@ -19,7 +19,7 @@ def join_game(request):
         game_id = game_query.data[0]['game_id']
         player_count = supabase.table("players").select("user_id", count="exact").eq("game_id", game_id).execute()
         
-        # If there is already 1 person, this new person makes 2 (the game is now full).
+        # If there is already 4 people, this new person makes 5 (the game is now full).
         if player_count.count >= 4:
             supabase.table("games").update({"status": "active"}).eq("game_id", game_id).execute()
         
@@ -28,13 +28,18 @@ def join_game(request):
     supabase.table("players").insert({
         "user_id": player_id,
         "game_id": game_id,
+        "name": player_count.count,
+        "Human": True,
     }).execute()
+
+
 
     return JsonResponse({
         "game_id": game_id, 
         "your_id": player_id,
         "player_number": (player_count.count + 1) if game_query.data else 1,
-        "status": supabase.table("games").select("status").eq("game_id", game_id).limit(1).execute().data[0]['status']
+        "status": supabase.table("games").select("status").eq("game_id", game_id).limit(1).execute().data[0]['status'],
+        "name": player_count.count,
     })
 
 def game_start():

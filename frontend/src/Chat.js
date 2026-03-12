@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 import Voting from './Voting';
+
 
 // Supabase client using environment variables (safe for pushing)
 const supabase = createClient(
@@ -16,6 +17,8 @@ function Chat() {
   const [showVoting, setShowVoting] = useState(false); 
   const [meetingOpen, setMeetingOpen] = useState(false);
 
+  const [currentTurn, setCurrentTurn] = useState(false);
+
   // Join the server via Django
   const joinServer = async () => {
     try {
@@ -26,32 +29,97 @@ function Chat() {
     }
   };
 
-  // Real-time listener: fetch existing messages and subscribe to new ones
+
+const lastMessageCount = useRef(0);
+
   useEffect(() => {
     if (!gameData) return;
 
-    const fetchExisting = async () => {
-      const { data } = await supabase
+    const fetchMessages = async () => {
+      const { data: messageData, error } = await supabase
         .from('messages')
         .select('*')
         .eq('game_id', gameData.game_id)
         .order('timestamp', { ascending: true });
-      if (data) setMessages(data);
-    };
-    fetchExisting();
 
-	  console.log(gameData?.status)
+      console.log("insert result", messageData, error);
+      if (error) console.error("Fetch error:", error);
+
+      if (messageData) {
+        setMessages(messageData);
+
+        if (messageData.length !== lastMessageCount.current) {
+          lastMessageCount.current = messageData.length;
+
+          const lastMsg = messageData[messageData.length - 1];
+          checkTurn(lastMsg);
+        }
+
+        console.log("Messages:", messageData.length, "Last:", lastMessageCount.current);
+      }
+    };
+
+    const checkTurn = async (msg) => {
+      if (!msg) return;
+
+      console.log("Checking turn...");
+      const { data: playerData } = await supabase
+        .from("players")
+        .select("name")
+        .eq("user_id", msg.user_id)
+        .single();
+
+      const number = playerData?.name || -1;
+
+      if (number >= gameData.name - 1 || gameData.name === 0) {
+        setCurrentTurn(true);
+      } else {
+        setCurrentTurn(false);
+      }
+    };
+
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 2000);
+
+    console.log(gameData?.status, gameData?.name);
+    return () => clearInterval(interval);
+  }, [gameData]); // ✅ hooks can depend on state/props
+
+
+
+
+
+
+
+
+	  /*
     const channel = supabase
       .channel(`game-${gameData.game_id}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `game_id=eq.${gameData.game_id}` },
-        (payload) => setMessages((prev) => [...prev, payload.new])
-      )
-      .subscribe();
+        async (payload) => {
+		// check if is your turn
+			console.log("YOUR TURN?");
+		const msg = payload.new;
+		const { data } = await supabase.from("players").select("name").eq("user_id", msg.user_id).single();
+	  	const number = data?.name || -1;
+		if (number >= gameData.name - 1 || gameData.name == 0) {
+			setCurrentTurn(true)
+		}
 
-    return () => supabase.removeChannel(channel);
-  }, [gameData]);
+	
+		setMessages((prev) => [...prev, payload.new]);
+	}
+      )
+      .subscribe((status) => {
+	      console.log("Realtime:", status)
+      });
+	*/
+
+    //return () => supabase.removeChannel(channel);
+  //}, [gameData]);
+  
 
   // Send message
   const sendMessage = async (e) => {
@@ -347,6 +415,7 @@ function Chat() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Type a message..."
+	      disabled={!currentTurn}
               style={{
                 flex: 1,
                 padding: '10px',
