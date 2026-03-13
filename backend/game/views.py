@@ -8,6 +8,7 @@ def health(request):
     return JsonResponse({"status": "ok"})
 
 def join_game(request):
+    game_started = False
     # 1. Look for a game that is still "waiting"
     game_query = supabase.table("games").select("*").eq("status", "waiting").limit(1).execute()
     
@@ -23,8 +24,7 @@ def join_game(request):
         # If there is already 4 people, this new person makes 5 (the game is now full).
         if player_count.count >= 4:
             supabase.table("games").update({"status": "active"}).eq("game_id", game_id).execute()
-            assign_random_turn_order(game_id)
-            assign_random_imposter(game_id)
+            game_started = True
         
     # 2. Add the current user to this game
     player_id = str(uuid.uuid4())
@@ -35,12 +35,15 @@ def join_game(request):
         "Imposter": False,
     }).execute()
 
+    if game_started:
+        assign_random_turn_order(game_id)
+        assign_random_imposter(game_id)
+        
     return JsonResponse({
         "game_id": game_id, 
         "your_id": player_id,
         "player_number": (player_count.count + 1) if game_query.data else 1,
         "status": supabase.table("games").select("status").eq("game_id", game_id).limit(1).execute().data[0]['status'],
-        "name": player_count.count,
     })
 
 def assign_random_turn_order(game_id: str) -> None:
