@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 import Voting from './Voting';
@@ -30,7 +30,6 @@ function Chat() {
   };
 
 
-const lastMessageCount = useRef(0);
 
   useEffect(() => {
     if (!gameData) return;
@@ -47,15 +46,6 @@ const lastMessageCount = useRef(0);
 
       if (messageData) {
         setMessages(messageData);
-
-        if (messageData.length !== lastMessageCount.current) {
-          lastMessageCount.current = messageData.length;
-
-          const lastMsg = messageData[messageData.length - 1];
-          checkTurn(lastMsg);
-        }
-
-        console.log("Messages:", messageData.length, "Last:", lastMessageCount.current);
       }
     };
 
@@ -64,9 +54,9 @@ const lastMessageCount = useRef(0);
 
       console.log("Checking turn...");
       const { data: playerData } = await supabase
-        .from("players")
-        .select("name")
-        .eq("user_id", msg.user_id)
+        .from("games")
+        .select("current_turn")
+        .eq("game_id", gameData.game_id)
         .single();
 
       const number = playerData?.name || -1;
