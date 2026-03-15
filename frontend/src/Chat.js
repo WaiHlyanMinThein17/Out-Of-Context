@@ -49,19 +49,24 @@ function Chat() {
       }
     };
 
-    const checkTurn = async (msg) => {
-      if (!msg) return;
+    const checkTurn = async () => {
 
       console.log("Checking turn...");
-      const { data: playerData } = await supabase
+      const { data: turnData } = await supabase
         .from("games")
         .select("current_turn")
         .eq("game_id", gameData.game_id)
         .single();
 
-      const number = playerData?.name || -1;
+      const { data: playerData } = await supabase
+        .from("players")
+        .select("turn_order")
+        .eq("user_id", gameData.your_id)
+        .single();
+      
+      console.log(playerData?.turn_order, turnData?.current_turn);
 
-      if (number >= gameData.name - 1 || gameData.name === 0) {
+      if (playerData?.turn_order === turnData?.current_turn || turnData?.current_turn === -1) {
         setCurrentTurn(true);
       } else {
         setCurrentTurn(false);
@@ -69,47 +74,11 @@ function Chat() {
     };
 
     fetchMessages();
-    const interval = setInterval(fetchMessages, 2000);
+    checkTurn();
 
     console.log(gameData?.status, gameData?.name);
-    return () => clearInterval(interval);
+    return; //() => {};
   }, [gameData]); // ✅ hooks can depend on state/props
-
-
-
-
-
-
-
-
-	  /*
-    const channel = supabase
-      .channel(`game-${gameData.game_id}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `game_id=eq.${gameData.game_id}` },
-        async (payload) => {
-		// check if is your turn
-			console.log("YOUR TURN?");
-		const msg = payload.new;
-		const { data } = await supabase.from("players").select("name").eq("user_id", msg.user_id).single();
-	  	const number = data?.name || -1;
-		if (number >= gameData.name - 1 || gameData.name == 0) {
-			setCurrentTurn(true)
-		}
-
-	
-		setMessages((prev) => [...prev, payload.new]);
-	}
-      )
-      .subscribe((status) => {
-	      console.log("Realtime:", status)
-      });
-	*/
-
-    //return () => supabase.removeChannel(channel);
-  //}, [gameData]);
-  
 
   // Send message
   const sendMessage = async (e) => {
