@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 import Voting from './Voting';
@@ -23,7 +23,7 @@ function Chat() {
   const [word, setWord] = useState(null);
   const [meetingOpen, setMeetingOpen] = useState(false);
 
-  const syncTurnData = async (gameId, userId, retryCount = 0) => {
+  const syncTurnData = useCallback(async (gameId, userId, retryCount = 0) => {
     const { data: player } = await supabase
       .from('players')
       .select('turn_order')
@@ -57,7 +57,7 @@ function Chat() {
       setCurrentTurn(game.current_turn);
       setGameStatus(game.status);
     }
-  };
+  }, []);
 
   const joinServer = async () => {
     try {
@@ -170,7 +170,7 @@ function Chat() {
       .subscribe();
 
     return () => supabase.removeChannel(channel);
-  }, [gameData]);
+  }, [gameData, syncTurnData]);
 
   const sendMessage = async (e) => {
     e.preventDefault();

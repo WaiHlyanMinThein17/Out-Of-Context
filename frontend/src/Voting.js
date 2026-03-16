@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -43,7 +43,7 @@ function Voting({ gameId, myId, onBackToChat }) {
   }, [gameId, myId]);
 
   // CHANGED: Now fetches amount_votes from the players table
-  const fetchResults = async () => {
+  const fetchResults = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('players')
@@ -67,7 +67,7 @@ function Voting({ gameId, myId, onBackToChat }) {
     } catch (err) {
       console.error("Error fetching results:", err);
     }
-  };
+  }, [gameId]);
 
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -76,7 +76,7 @@ function Voting({ gameId, myId, onBackToChat }) {
     }
     const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, fetchResults]);
 
   const handleSubmitVote = async () => {
     if (!selectedVote || hasVoted) return;
