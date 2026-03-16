@@ -3,7 +3,6 @@ import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 import Voting from './Voting';
 
-// Supabase client using environment variables (safe for pushing)
 const supabase = createClient(
   'https://ialzxgcgkzvgxjzgglkc.supabase.co',
   'sb_publishable_RC7ubywKk9G_vz0eiuBlPw_NwGnvuev'
@@ -13,20 +12,67 @@ function Chat() {
   const [gameData, setGameData] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
-  const [showVoting, setShowVoting] = useState(false); 
+  const [showVoting, setShowVoting] = useState(false);
+  const [role, setRole] = useState("Crewmate");
+  const [gameOver, setGameOver] = useState(false); // ADDED
+  const [myTurnID, setMyTurnID] = useState(-1);
+  const [currentTurn, setCurrentTurn] = useState(-1);
+  const [gameStatus, setGameStatus] = useState('waiting');
+  const [round, setRound] = useState(1);
+  const [playerMap, setPlayerMap] = useState({});
+
   const [meetingOpen, setMeetingOpen] = useState(false);
 
-  // Join the server via Django
+  const syncTurnData = async (gameId, userId, retryCount = 0) => {
+    const { data: player } = await supabase
+      .from('players')
+      .select('turn_order')
+      .eq('game_id', gameId)
+      .eq('user_id', userId)
+      .single();
+
+    const { data: game } = await supabase
+      .from('games')
+      .select('current_turn, status, current_round')
+      .eq('game_id', gameId)
+      .single();
+
+    if (game) {
+      setCurrentTurn(game.current_turn);
+      setGameStatus(game.status);
+      setRound(game.current_round || 1);
+    }
+
+    if (!player || player.turn_order === null || player.turn_order === -1) {
+      if (retryCount < 10) {
+        console.log("Sync: Data not ready, retrying...");
+        setTimeout(() => syncTurnData(gameId, userId, retryCount + 1), 500);
+      }
+      return;
+    }
+
+    setMyTurnID(player.turn_order);
+
+    if (game) {
+      setCurrentTurn(game.current_turn);
+      setGameStatus(game.status);
+    }
+  };
+
   const joinServer = async () => {
     try {
       const res = await axios.get('http://localhost:8000/join');
       setGameData(res.data);
+      setGameStatus(res.data.status);
+
+      if (res.data.status === 'active') {
+        syncTurnData(res.data.game_id, res.data.your_id);
+      }
     } catch (err) {
-      alert("Backend not reached. Is Docker running?");
+      alert("Backend error.");
     }
   };
 
-  // Real-time listener: fetch existing messages and subscribe to new ones
   useEffect(() => {
     if (!gameData) return;
 
@@ -38,42 +84,102 @@ function Chat() {
         .order('timestamp', { ascending: true });
       if (data) setMessages(data);
     };
+
+    const fetchPlayers = async () => {
+      const { data } = await supabase
+        .from('players')
+        .select('user_id, turn_order, Imposter')
+        .eq('game_id', gameData.game_id);
+
+      if (data) {
+        const map = {};
+        data.forEach(p => {
+          map[p.user_id] = p.turn_order;
+          if (p.user_id === gameData.your_id) {
+            setRole(p.Imposter ? "Imposter" : "Crewmate");
+          }
+        });
+        setPlayerMap(map);
+      }
+    };
+
     fetchExisting();
+    fetchPlayers();
 
     const channel = supabase
       .channel(`game-${gameData.game_id}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `game_id=eq.${gameData.game_id}` },
-        (payload) => setMessages((prev) => [...prev, payload.new])
-      )
+      .on('postgres_changes', { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'messages', 
+          filter: `game_id=eq.${gameData.game_id}` 
+        }, (payload) => setMessages((prev) => [...prev, payload.new]))
+      .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'games', 
+          filter: `game_id=eq.${gameData.game_id}` 
+        }, (payload) => {
+          setGameStatus(payload.new.status);
+          setCurrentTurn(payload.new.current_turn);
+          const currentRound = payload.new.current_round || 1;
+          setRound(currentRound);
+
+          // ADDED: Check for Game Over after 2 rounds
+          if (currentRound > 2) {
+            setGameOver(true);
+          }
+
+          if (payload.new.status === 'active') {
+            syncTurnData(gameData.game_id, gameData.your_id);
+            fetchPlayers(); 
+          }
+        })
+      
+      .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'players', 
+          filter: `game_id=eq.${gameData.game_id}` 
+        }, (payload) => {
+          if (payload.new.user_id === gameData.your_id) {
+            setRole(payload.new.Imposter ? "Imposter" : "Crewmate");
+            setMyTurnID(payload.new.turn_order);
+          }
+          setPlayerMap(prev => ({
+            ...prev,
+            [payload.new.user_id]: payload.new.turn_order
+          }));
+        })
       .subscribe();
 
     return () => supabase.removeChannel(channel);
   }, [gameData]);
 
-  // Send message
   const sendMessage = async (e) => {
     e.preventDefault();
+
     if (!inputText.trim()) return;
 
-    const { error } = await supabase.from('messages').insert([
-      {
+    try {
+      await axios.post('http://localhost:8000/send_message', {
         game_id: gameData.game_id,
-        sender_id: gameData.your_id,
+        player_id: gameData.your_id,
         content: inputText
-      }
-    ]);
+      });
 
-    if (!error) setInputText('');
+      setInputText('');
+
+    } catch (err) {
+      console.error("Error sending message:", err);
+      alert("Failed to send message. Is the backend running?");
+    }
   };
 
-  // Temporary: if voting view is toggled on, render Voting panel instead of chat
-  if (showVoting && gameData) {
-    return <Voting gameData={gameData} onBackToChat={() => setShowVoting(false)} />;
-  }
+  const isLobby = gameStatus === 'waiting';
+  const isMyTurn = gameStatus === 'active' && myTurnID === currentTurn;
+  const inputDisabled = !isLobby && !isMyTurn;
 
-  // If not joined yet, show big centered "Join Server" button
   if (!gameData) {
     return (
       <div
@@ -94,20 +200,23 @@ function Chat() {
             background: '#2563eb',
             color: 'white',
             border: 'none',
-            borderRadius: '12px',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
-            transition: 'transform 0.1s ease, box-shadow 0.1s ease'
+            borderRadius: '12px'
           }}
-          onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.96)')}
-          onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
         >
           Join Server
         </button>
       </div>
     );
   }
-
-  // Game room / lobby layout
+  if (showVoting) {
+    return (
+      <Voting 
+        gameId={gameData.game_id} 
+        myId={gameData.your_id} 
+        onClose={() => setShowVoting(false)} 
+      />
+    );
+  }
   return (
     <div
       style={{
@@ -116,10 +225,11 @@ function Chat() {
         color: 'white',
         display: 'flex',
         flexDirection: 'column',
-        fontFamily: 'Arial'
+        fontFamily: 'Arial',
+        position: 'relative',
+        overflow: 'scroll'
       }}
     >
-      {/* Header */}
       <div
         style={{
           padding: '15px 20px',
@@ -127,15 +237,20 @@ function Chat() {
           fontWeight: 'bold'
         }}
       >
-        Theory of Mind — Game Room
-        <span style={{ fontSize: '12px', color: '#8aa0c8', marginLeft: '10px' }}>
+        Theory of Mind — {isLobby ? 'Lobby' : 'Game Room'}
+
+        <span
+          style={{
+            fontSize: '12px',
+            color: '#8aa0c8',
+            marginLeft: '10px'
+          }}
+        >
           ID: {gameData.game_id}
         </span>
       </div>
 
-      {/* Main content */}
       <div style={{ flex: 1, display: 'flex' }}>
-        {/* LEFT: Game info panel */}
         <div
           style={{
             width: '260px',
@@ -143,23 +258,53 @@ function Chat() {
             padding: '20px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '18px'
+            gap: '15px',
           }}
         >
-          {/* Round + Timer */}
           <div
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: '14px',
-              color: '#9fb3d9'
+              background: '#111a2e',
+              padding: '15px',
+              borderRadius: '10px',
+              textAlign: 'center'
             }}
           >
-            <span>Round {1}/5</span>
-            <span>⏱ 00:45</span>
+            <div style={{ fontSize: '11px', color: '#8aa0c8' }}>
+              YOUR IDENTITY
+            </div>
+
+            <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+              {myTurnID === -1
+                ? "Assigning..."
+                : `Player ${myTurnID + 1}`}
+            </div>
           </div>
 
-          {/* Word Prompt Box */}
+          <div
+            style={{
+              background: '#0f172a',
+              border: '1px solid #1f2a44',
+              borderRadius: '10px',
+              padding: '15px',
+              textAlign: 'center'
+            }}
+          >
+            <div style={{ fontSize: '12px', color: '#8aa0c8' }}>
+              YOUR ROLE
+            </div>
+
+            <div
+              style={{
+                marginTop: '6px',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                color: role === "Imposter" ? '#ef4444' : '#22c55e'
+              }}
+            >
+              {role}
+            </div>
+          </div>
+
           <div
             style={{
               background: '#111a2e',
@@ -186,183 +331,142 @@ function Chat() {
                 letterSpacing: '2px'
               }}
             >
-              APPLE
+              {role === "Imposter" ? "???" : "APPLE"}
             </div>
           </div>
 
-          {/* Role Box */}
           <div
             style={{
-              textAlign: 'center',
-              padding: '15px',
-              borderRadius: '10px',
-              background: '#0f172a',
-              border: '1px solid #1f2a44'
+              fontSize: '14px',
+              color: '#9fb3d9',
+              textAlign: 'center'
             }}
           >
-            <div style={{ fontSize: '12px', color: '#8aa0c8' }}>Your Role</div>
+            {!isLobby && (
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: '#8aa0c8',
+                  marginBottom: '4px'
+                }}
+              >
+                Round {round}
+              </div>
+            )}
 
-            <div
-              style={{
-                marginTop: '6px',
-                fontSize: '18px',
-                fontWeight: 'bold',
-                color: '#22c55e'
-              }}
-            >
-              Crewmate
-            </div>
+            {isLobby
+              ? "Waiting for players..."
+              : isMyTurn
+                ? "🟢 YOUR TURN"
+                : `Player ${currentTurn + 1}'s Turn`}
           </div>
 
-          {/* Emergency Meeting Button */}
           <button
-            onClick={() => setMeetingOpen(true)}
+            onClick={() => gameOver ? setShowVoting(true) : setMeetingOpen(true)} // UPDATED
             style={{
-              background: '#b91c1c',
+              marginTop: '20px',
+              padding: '20px',
+              background: gameOver ? '#22c55e' : '#b91c1c', // UPDATED
               color: 'white',
               border: 'none',
               borderRadius: '50%',
               width: '140px',
               height: '140px',
-              margin: '0 auto',
+              margin: '20px auto',
               fontWeight: 'bold',
-              fontSize: '14px',
               cursor: 'pointer',
-              boxShadow: '0 0 25px rgba(255,0,0,0.6)',
-              transition: 'transform 0.1s ease'
+              boxShadow: gameOver ? '0 0 25px rgba(34, 197, 94, 0.6)' : '0 0 20px rgba(185, 28, 28, 0.4)' // UPDATED
             }}
-            onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
-            onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
           >
-            EMERGENCY
-            <br />
-            MEETING
+            {gameOver ? "GO TO VOTING" : "EMERGENCY MEETING"} {/* UPDATED */}
           </button>
-
-          {/* How to Play */}
-          <div
-            style={{
-              marginTop: 'auto',
-              fontSize: '12px',
-              color: '#8aa0c8',
-              lineHeight: '1.5'
-            }}
-          >
-            <div
-              style={{
-                fontWeight: 'bold',
-                marginBottom: '6px',
-                color: 'white'
-              }}
-            >
-              How to Play
-            </div>
-
-            Describe your word without saying it directly. Find the imposter before time runs out.
-          </div>
-
-          {/*Temporary: used to create temp button to go btwn chat and voting*/}
-  <button
-    onClick={() => setShowVoting(true)}
-    style={{
-      marginTop: '20px',
-      padding: '12px 20px',
-      fontSize: '14px',
-      fontWeight: 'bold',
-      background: '#ef4444',
-      color: 'white',
-      border: 'none',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      width: '100%',
-      transition: 'all 0.2s ease'
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.background = '#dc2626';
-      e.currentTarget.style.transform = 'scale(1.02)';
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.background = '#ef4444';
-      e.currentTarget.style.transform = 'scale(1)';
-    }}
-  >
-    🗳️ Go to Voting
-  </button>
         </div>
 
-        {/* RIGHT: Chat area */}
         <div
           style={{
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            padding: '15px'
+            padding: '15px',
+            position: 'relative'
           }}
         >
-          {/* Messages */}
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              marginBottom: '10px',
-              paddingRight: '5px'
-            }}
-          >
-            {messages.length === 0 && (
-              <p style={{ color: '#6f85b3', textAlign: 'center' }}>
-                No messages yet. Start the conversation!
-              </p>
-            )}
+          {/* ADDED: GAME OVER OVERLAY */}
+          {gameOver && (
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(0,0,0,0.9)', padding: '40px', borderRadius: '20px', border: '2px solid #ef4444', textAlign: 'center', zIndex: 100, width: '80%' }}>
+              <h1 style={{ color: '#ef4444', fontSize: '36px', marginBottom: '10px' }}>GAME OVER</h1>
+              <p style={{ fontSize: '18px', color: '#8aa0c8' }}>Two rounds are complete. Everyone must vote now!</p>
+              <p style={{ fontWeight: 'bold', color: 'white' }}>Click the Green Button on the left to Vote.</p>
+            </div>
+          )}
 
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                style={{
-                  textAlign: msg.sender_id === gameData.your_id ? 'right' : 'left',
-                  margin: '6px 0'
-                }}
-              >
-                <span
+          <div style={{ flex: 1, overflowY: 'auto', marginBottom: '10px' }}>
+            {messages.map((msg, i) => {
+              const playerNumber = playerMap[msg.sender_id];
+
+              return (
+                <div
+                  key={i}
                   style={{
-                    background: msg.sender_id === gameData.your_id ? '#2563eb' : '#1f2a44',
-                    color: 'white',
-                    padding: '8px 12px',
-                    borderRadius: '14px',
-                    display: 'inline-block',
-                    maxWidth: '70%',
-                    wordWrap: 'break-word'
+                    textAlign: msg.sender_id === gameData.your_id ? 'right' : 'left',
+                    margin: '10px 0'
                   }}
                 >
-                  {msg.content}
-                </span>
-              </div>
-            ))}
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      color: '#8aa0c8',
+                      marginBottom: '2px'
+                    }}
+                  >
+                    {msg.sender_id === gameData.your_id
+                      ? "You"
+                      : playerNumber !== undefined ? `Player ${playerNumber + 1}` : "Player"}
+                  </div>
+
+                  <span
+                    style={{
+                      background: msg.sender_id === gameData.your_id ? '#2563eb' : '#1f2a44',
+                      padding: '8px 12px',
+                      borderRadius: '14px',
+                      display: 'inline-block'
+                    }}
+                  >
+                    {msg.content}
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Input */}
-          <form onSubmit={sendMessage} style={{ display: 'flex', gap: '8px' }}>
+          <form
+            onSubmit={sendMessage}
+            style={{ display: 'flex', gap: '8px' }}
+          >
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Type a message..."
+              placeholder={inputDisabled ? "Wait for your turn..." : "Type a message..."}
+              disabled={inputDisabled}
               style={{
                 flex: 1,
-                padding: '10px',
-                borderRadius: '6px',
+                padding: '12px',
+                borderRadius: '8px',
                 border: 'none',
-                outline: 'none'
+                background: inputDisabled ? '#1e293b' : '#fff'
               }}
             />
+
             <button
               type="submit"
+              disabled={inputDisabled}
               style={{
-                padding: '10px 18px',
-                background: '#22c55e',
+                padding: '0 20px',
+                background: inputDisabled ? '#334155' : '#22c55e',
                 color: 'white',
                 border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer'
+                borderRadius: '8px'
               }}
             >
               Send
@@ -371,7 +475,6 @@ function Chat() {
         </div>
       </div>
 
-      {/* Emergency Meeting Modal */}
       {meetingOpen && (
         <div
           style={{
@@ -380,38 +483,26 @@ function Chat() {
             left: 0,
             width: '100vw',
             height: '100vh',
-            background: 'rgba(0,0,0,0.85)',
+            background: 'rgba(0,0,0,0.9)',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             zIndex: 1000
           }}
         >
-          <div
-            style={{
-              background: '#0f172a',
-              padding: '30px',
-              borderRadius: '12px',
-              width: '420px',
-              textAlign: 'center',
-              border: '2px solid #ef4444'
-            }}
-          >
-            <h2 style={{ color: '#ef4444', marginBottom: '10px' }}>🚨 Emergency Meeting</h2>
-
-            <p style={{ color: '#9fb3d9', fontSize: '14px' }}>
-              Meeting UI will go here next (player voting, discussion timer, etc.)
-            </p>
+          <div style={{ textAlign: 'center' }}>
+            <h1 style={{ color: '#ef4444', fontSize: '48px' }}>
+              🚨 MEETING CALLED
+            </h1>
 
             <button
               onClick={() => setMeetingOpen(false)}
               style={{
                 marginTop: '20px',
                 padding: '10px 20px',
-                background: '#2563eb',
-                color: 'white',
+                background: 'white',
                 border: 'none',
-                borderRadius: '6px',
+                borderRadius: '5px',
                 cursor: 'pointer'
               }}
             >
@@ -419,6 +510,15 @@ function Chat() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* ADDED: VOTING COMPONENT RENDER */}
+      {showVoting && (
+        <Voting 
+          gameId={gameData.game_id} 
+          myId={gameData.your_id} 
+          onClose={() => setShowVoting(false)} 
+        />
       )}
     </div>
   );
