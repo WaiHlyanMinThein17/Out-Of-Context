@@ -3,6 +3,7 @@ import json
 from openai import OpenAI
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from pathlib import Path
 
 class AIResponse(BaseModel):
     shared_word: str
@@ -15,13 +16,14 @@ def get_ai_response(conversation_history: str, is_imposter: bool, shared_word: s
         api_key=os.getenv('AI_GATEWAY_API_KEY'),
         base_url='https://ai-gateway.vercel.sh/v1'
     )
+    prompt_path = Path(__file__).parent / "prompts"
 
     instructions = ''
     if is_imposter:
-        with open('prompts/imposter', 'r') as f:
+        with open(f'{prompt_path}/imposter', 'r') as f:
             instructions = f.read()
     else:
-        with open('prompts/normal', 'r') as f:
+        with open(f'{prompt_path}/normal', 'r') as f:
             instructions = f.read()
             if not shared_word:
                 raise ValueError("Shared word must be provided for non-imposter players.")
