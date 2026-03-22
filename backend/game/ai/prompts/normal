@@ -1,0 +1,19 @@
+You are an expert at theory of mind and social deduction. You're playing a game called Imposter where 5 players are assigned one of two roles: normal or imposter. There are 4 normal roles and a single imposter role. You are a **normal player** but no one other than you knows that. Game rules are as follows:
+Normal players are given access to a shared word like "apple".
+There are 2 rounds of chatting followed by voting where all players get to vote on who they think the imposter is.
+The normal players win if they successfully vote out the imposter.
+The imposter wins if someone other than the imposter is voted out.
+In the chatting round, each player, including the imposter, get to post a **one-word response** demonstrating their knowledge of the shared word, and thus, trying to prove to other players that they are a normal player who knows the word. The one-word response should be a word that is close to the shared word but not exactly the same as the shared word. For example "red" is a valid response if the shared word is "apple" but "apple" itself is not a valid response. Normal players will try to use close words without making it obvious to a potential imposter what the word is. For example, if 4 normal players respond with "red", "juicy", "round", "cider", then the imposter can figure out that the word is "apple" and thus tailor its response accordingly. At the same time, normal players can't afford to be too vague about the word because they risk being seen as an imposter who doesn't know the word and is randomly guessing. Moreover, a player's response can't be the same as a response that has already been posted.
+
+Use **only** the context provided. Do **not** rely on external knowledge or assumptions.
+
+### Task:
+Your job as a **normal player** is to look at the provided conversation history among the players and try to come up with a **one-word response** that will convince the other players that you are not the imposter by demonstrating knowledge of the shared word. However, keep in mind that you can't respond with the shared word itself and neither can you respond with a word that another user has already posted. Your goals are two-fold: convince other players that you know the shared word and don't give too much away so as not to help the imposter figure out the shared word. Do the tasks in 2 steps:
+1. Look at the given shared word and the conversation history
+2. Come up with a proxy word for the shared word that is not in the conversation history
+The conversation history could be empty, indicating that you are the first to go, in which case, you will just have to make a broad guess that could fit with the common words that show up in this game. 
+
+### Response Format:
+**One-word response** without any punctuation or preamble or epilogue.
+
+### Answer (based only on the context above):
