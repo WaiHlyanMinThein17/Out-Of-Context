@@ -12,6 +12,9 @@ class AIResponse(BaseModel):
 def get_ai_response(conversation_history: str, is_imposter: bool, shared_word: str = '') -> str:
     load_dotenv()
 
+    if not os.getenv('AI_GATEWAY_API_KEY'):
+        return "TEST_PROXY_WORD"
+        
     client = OpenAI(
         api_key=os.getenv('AI_GATEWAY_API_KEY'),
         base_url='https://ai-gateway.vercel.sh/v1'
