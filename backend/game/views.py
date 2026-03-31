@@ -26,95 +26,97 @@ def health(request):
 
 
 def join_game(request):
+    try:
+        # ── 1. Find or create a waiting game ──
+        game_query = supabase.table("games").select("*").eq("status", "waiting").limit(1).execute()
 
-    # ── 1. Find or create a waiting game ──
-    game_query = supabase.table("games").select("*").eq("status", "waiting").limit(1).execute()
+        if not game_query.data:
+            game_res = supabase.table("games").insert({"status": "waiting"}).execute()
+            game_id = game_res.data[0]['game_id']
+        else:
+            game_id = game_query.data[0]['game_id']
 
-    if not game_query.data:
-        game_res = supabase.table("games").insert({"status": "waiting"}).execute()
-        game_id = game_res.data[0]['game_id']
-    else:
-        game_id = game_query.data[0]['game_id']
+        player_id = str(uuid.uuid4())
 
-    player_id = str(uuid.uuid4())
+        supabase.table("players").insert({
+            "user_id": player_id,
+            "game_id": game_id,
+            "Human": True,
+            "Imposter": False,
+            "turn_order": -1
+        }).execute()
 
-    supabase.table("players").insert({
-        "user_id": player_id,
-        "game_id": game_id,
-        "Human": True,
-        "Imposter": False,
-        "turn_order": -1
-    }).execute()
-
-    # ── 2. Re-count AFTER our insert ──
-    player_count_res = supabase.table("players") \
-        .select("user_id", count="exact") \
-        .eq("game_id", game_id) \
-        .execute()
-
-    player_count = player_count_res.count
-
-    # ── 3. Atomic gate: only one request can flip 'waiting' → 'starting' ──
-    if player_count >= 4:
-        lock_res = supabase.table("games") \
-            .update({"status": "starting"}) \
+        # ── 2. Re-count AFTER our insert ──
+        player_count_res = supabase.table("players") \
+            .select("user_id", count="exact") \
             .eq("game_id", game_id) \
-            .eq("status", "waiting") \
             .execute()
 
-        if lock_res.data:
-            ai_id = str(uuid.uuid4())
+        player_count = player_count_res.count
 
-            supabase.table("players").insert({
-                "user_id": ai_id,
-                "game_id": game_id,
-                "Human": False,
-                "Imposter": False,
-                "turn_order": -1
-            }).execute()
-
-            assign_random_turn_order(game_id)
-            assign_random_imposter(game_id)
-            chosen_word = random.choice(WORDS)
-
-            supabase.table("games").update({
-                "status": "active",
-                "current_turn": 0,
-                "current_round": 1,
-                "word": chosen_word
-            }).eq("game_id", game_id).execute()
-
-            # If turn 0 belongs to AI, fire it in background
-            first_player = supabase.table("players") \
-                .select("Human, user_id") \
+        # ── 3. Atomic gate: only one request can flip 'waiting' → 'starting' ──
+        if player_count >= 4:
+            lock_res = supabase.table("games") \
+                .update({"status": "starting"}) \
                 .eq("game_id", game_id) \
-                .eq("turn_order", 0) \
-                .single() \
+                .eq("status", "waiting") \
                 .execute()
 
-            if not first_player.data["Human"]:
-                t = threading.Thread(
-                    target=_handle_ai_turn,
-                    args=(game_id, first_player.data["user_id"]),
-                    daemon=True
-                )
-                t.start()
+            if lock_res.data:
+                ai_id = str(uuid.uuid4())
 
-    # ── 4. Return immediately ──
-    final_game = supabase.table("games") \
-        .select("status") \
-        .eq("game_id", game_id) \
-        .single() \
-        .execute()
+                supabase.table("players").insert({
+                    "user_id": ai_id,
+                    "game_id": game_id,
+                    "Human": False,
+                    "Imposter": False,
+                    "turn_order": -1
+                }).execute()
 
-    current_status = final_game.data["status"] if final_game.data else "waiting"
+                assign_random_turn_order(game_id)
+                assign_random_imposter(game_id)
+                chosen_word = random.choice(WORDS)
 
-    return JsonResponse({
-        "game_id": game_id,
-        "your_id": player_id,
-        "player_count": player_count,
-        "status": current_status,
-    })
+                supabase.table("games").update({
+                    "status": "active",
+                    "current_turn": 0,
+                    "current_round": 1,
+                    "word": chosen_word
+                }).eq("game_id", game_id).execute()
+
+                # If turn 0 belongs to AI, fire it in background
+                first_player = supabase.table("players") \
+                    .select("Human, user_id") \
+                    .eq("game_id", game_id) \
+                    .eq("turn_order", 0) \
+                    .single() \
+                    .execute()
+
+                if not first_player.data["Human"]:
+                    t = threading.Thread(
+                        target=_handle_ai_turn,
+                        args=(game_id, first_player.data["user_id"]),
+                        daemon=True
+                    )
+                    t.start()
+
+        # ── 4. Return immediately ──
+        final_game = supabase.table("games") \
+            .select("status") \
+            .eq("game_id", game_id) \
+            .single() \
+            .execute()
+
+        current_status = final_game.data["status"] if final_game.data else "waiting"
+
+        return JsonResponse({
+            "game_id": game_id,
+            "your_id": player_id,
+            "player_count": player_count,
+            "status": current_status,
+        })
+    except Exception:
+        return JsonResponse({"error": "Failed to join game"}, status=500)
 
 
 def _handle_ai_turn(game_id: str, ai_id: str):
@@ -164,14 +166,25 @@ def _handle_ai_turn(game_id: str, ai_id: str):
 
 @csrf_exempt
 def send_message(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
 
-    if request.method == "POST":
-
+    try:
         data = json.loads(request.body)
-        game_id = data.get("game_id")
-        player_id = data.get("player_id")
-        content = data.get("content")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
 
+    game_id = data.get("game_id")
+    player_id = data.get("player_id")
+    content = data.get("content")
+
+    if not game_id or not player_id or not content:
+        return JsonResponse(
+            {"error": "Missing required fields: game_id, player_id, content"},
+            status=400
+        )
+
+    try:
         supabase.table("messages").insert({
             "game_id": game_id,
             "sender_id": player_id,
@@ -232,6 +245,8 @@ def send_message(request):
             "next_turn": next_turn,
             "current_round": current_round
         })
+    except Exception:
+        return JsonResponse({"error": "Failed to send message"}, status=500)
 
 
 def assign_random_turn_order(game_id: str) -> None:
