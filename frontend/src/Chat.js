@@ -33,10 +33,10 @@ const sharedStyles = `
   @keyframes fadeIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   @keyframes timerPulse { 0%,100%{box-shadow:0 0 12px rgba(148,210,255,0.2)} 50%{box-shadow:0 0 24px rgba(148,210,255,0.5)} }
   @keyframes timerUrgent { 0%,100%{box-shadow:0 0 12px rgba(239,68,68,0.3)} 50%{box-shadow:0 0 28px rgba(239,68,68,0.7)} }
-  .emergency-btn:hover {
-    background: radial-gradient(circle,rgba(185,28,28,.5) 0%,rgba(127,0,0,.25) 60%,transparent 100%) !important;
-    border-color: rgba(239,68,68,.8) !important;
-    box-shadow: 0 0 50px rgba(185,28,28,.6),inset 0 0 30px rgba(185,28,28,.2) !important;
+  .rules-btn:hover {
+    background: radial-gradient(circle,rgba(37,99,235,.45) 0%,rgba(37,99,235,.25) 60%,transparent 100%) !important;
+    border-color: rgba(148,210,255,.8) !important;
+    box-shadow: 0 0 50px rgba(37,99,235,.5),inset 0 0 30px rgba(37,99,235,.2) !important;
     transform: scale(1.05);
   }
   .mission-btn:hover {
@@ -160,6 +160,254 @@ function ChatInput({ value, onChange, onSubmit, placeholder, disabled }) {
   );
 }
 
+/* ── Rules Modal ── */
+function RulesModal({ onClose }) {
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+
+  return (
+    <div 
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.95)',
+        backdropFilter: 'blur(12px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        fontFamily: tok.font,
+        animation: 'fadeIn 0.3s ease',
+      }}
+      onClick={onClose}
+    >
+      <div 
+        style={{
+          maxWidth: '600px',
+          width: '90%',
+          maxHeight: '80vh',
+          background: 'rgba(6,15,31,0.95)',
+          border: `1px solid ${tok.borderBright}`,
+          borderRadius: '8px',
+          overflow: 'hidden',
+          animation: 'fadeIn 0.3s ease',
+          boxShadow: '0 0 60px rgba(0,0,0,0.5)',
+          position: 'relative',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            background: 'transparent',
+            border: 'none',
+            color: tok.textDim,
+            fontSize: '24px',
+            cursor: 'pointer',
+            padding: '8px',
+            lineHeight: 1,
+            borderRadius: '4px',
+            transition: 'all 0.2s ease',
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '36px',
+            height: '36px',
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.color = tok.red;
+            e.target.style.background = 'rgba(239,68,68,0.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.color = tok.textDim;
+            e.target.style.background = 'transparent';
+          }}
+        >
+          ✕
+        </button>
+
+        <div style={{
+          padding: '24px 28px',
+          borderBottom: `1px solid ${tok.border}`,
+          background: 'rgba(3,10,22,0.8)',
+          paddingRight: '60px',
+        }}>
+          <h2 style={{
+            margin: 0,
+            fontSize: '24px',
+            fontWeight: '900',
+            letterSpacing: '4px',
+            color: tok.cyan,
+            textTransform: 'uppercase',
+          }}>
+            GAME RULES
+          </h2>
+          <div style={{
+            fontSize: '10px',
+            letterSpacing: '3px',
+            color: tok.textDim,
+            marginTop: '8px',
+          }}>
+            THEORY OF MIND · SOCIAL DEDUCTION
+          </div>
+        </div>
+
+        <div style={{
+          padding: '28px',
+          overflowY: 'auto',
+          maxHeight: 'calc(80vh - 140px)',
+        }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{
+              fontSize: '14px',
+              fontWeight: '700',
+              letterSpacing: '2px',
+              color: tok.red,
+              marginBottom: '12px',
+              textTransform: 'uppercase',
+            }}>
+              🎯 OBJECTIVE
+            </h3>
+            <p style={{
+              fontSize: '13px',
+              lineHeight: '1.6',
+              color: tok.text,
+              margin: 0,
+            }}>
+              Identify the Imposter among the crew. One player doesn't know the secret word - 
+              can you figure out who's bluffing?
+            </p>
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{
+              fontSize: '14px',
+              fontWeight: '700',
+              letterSpacing: '2px',
+              color: tok.cyan,
+              marginBottom: '12px',
+              textTransform: 'uppercase',
+            }}>
+              👥 ROLES
+            </h3>
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ color: tok.green, fontWeight: '700', marginBottom: '4px' }}>CREWMATE</div>
+              <p style={{ fontSize: '12px', color: tok.textDim, margin: '0 0 8px 0' }}>
+                You know the secret word. Your goal is to subtly hint at it without being too obvious, 
+                while identifying who doesn't know it.
+              </p>
+            </div>
+            <div>
+              <div style={{ color: tok.red, fontWeight: '700', marginBottom: '4px' }}>IMPOSTER</div>
+              <p style={{ fontSize: '12px', color: tok.textDim, margin: 0 }}>
+                You DON'T know the secret word. You must blend in by guessing based on others' messages, 
+                while trying to avoid being voted out.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{
+              fontSize: '14px',
+              fontWeight: '700',
+              letterSpacing: '2px',
+              color: tok.cyan,
+              marginBottom: '12px',
+              textTransform: 'uppercase',
+            }}>
+              🎮 GAMEPLAY
+            </h3>
+            <ul style={{
+              margin: 0,
+              paddingLeft: '20px',
+              color: tok.textDim,
+              fontSize: '12px',
+              lineHeight: '1.8',
+            }}>
+              <li>Players take turns sending messages in chat</li>
+              <li>After 2 rounds, a discussion phase begins (60 seconds)</li>
+              <li>Players can freely discuss suspicions during discussion phase</li>
+              <li>Voting phase follows - vote to eliminate the suspected imposter</li>
+              <li>If the imposter gets the most votes, Crewmates win!</li>
+              <li>If a crewmate gets the most votes, the Imposter wins!</li>
+            </ul>
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{
+              fontSize: '14px',
+              fontWeight: '700',
+              letterSpacing: '2px',
+              color: tok.cyan,
+              marginBottom: '12px',
+              textTransform: 'uppercase',
+            }}>
+              💡 TIPS
+            </h3>
+            <ul style={{
+              margin: 0,
+              paddingLeft: '20px',
+              color: tok.textDim,
+              fontSize: '12px',
+              lineHeight: '1.8',
+            }}>
+              <li>Crewmates: Be subtle! Don't directly say the word</li>
+              <li>Imposters: Listen carefully and try to deduce the word from context</li>
+              <li>Pay attention to who's being vague or changing topics</li>
+              <li>Consistency in messages is key to proving innocence</li>
+            </ul>
+          </div>
+        </div>
+
+        <div style={{
+          padding: '20px 28px',
+          borderTop: `1px solid ${tok.border}`,
+          textAlign: 'center',
+        }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '12px 32px',
+              fontSize: '12px',
+              fontFamily: tok.font,
+              fontWeight: '700',
+              letterSpacing: '3px',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              background: 'rgba(37,99,235,0.2)',
+              color: tok.cyan,
+              border: `1px solid ${tok.cyanDim}`,
+              borderRadius: '4px',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'rgba(37,99,235,0.35)';
+              e.target.style.boxShadow = '0 0 20px rgba(37,99,235,0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'rgba(37,99,235,0.2)';
+              e.target.style.boxShadow = 'none';
+            }}
+          >
+            GOT IT
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Lobby screen ── */
 function LobbyScreen({ gameData, playerCount }) {
   const slots = 4;
@@ -237,7 +485,7 @@ function useDiscussionTimer(isActive, durationSeconds, onExpire) {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [isActive]); // eslint-disable-line
+  }, [isActive, durationSeconds, onExpire]);
 
   return timeLeft;
 }
@@ -257,11 +505,11 @@ function Chat() {
   const [round, setRound]                     = useState(1);
   const [playerMap, setPlayerMap]             = useState({});
   const [word, setWord]                       = useState(null);
-  const [meetingOpen, setMeetingOpen]         = useState(false);
   const [joining, setJoining]                 = useState(false);
   const [showDiscussion, setShowDiscussion]   = useState(false);
   const [discussionInput, setDiscussionInput] = useState('');
   const [lobbyPlayerCount, setLobbyPlayerCount] = useState(0);
+  const [showRules, setShowRules]             = useState(false);
   const msgRef    = useRef(null);
   const discRef   = useRef(null);
 
@@ -383,7 +631,7 @@ function Chat() {
         setRound(r);
         if (r > 2 && !showDiscussion) {
           // Record how many messages existed when discussion started
-          // so we can draw the divider between game chat and discussion
+          // so we can draw the divider between game chat and discussion chat
           setMessages(prev => {
             setDiscussionStartMsgCount(prev.length);
             return prev;
@@ -408,7 +656,7 @@ function Chat() {
       .subscribe();
 
     return () => supabase.removeChannel(channel);
-  }, [gameData, syncTurnData]); // eslint-disable-line
+  }, [gameData, syncTurnData, showDiscussion]); // eslint-disable-line
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -454,7 +702,11 @@ function Chat() {
     return <LobbyScreen gameData={gameData} playerCount={lobbyPlayerCount} />;
 
   if (showVoting)
-    return <Voting gameId={gameData.game_id} myId={gameData.your_id} onClose={() => setShowVoting(false)} />;
+    return <Voting 
+      gameId={gameData.game_id} 
+      myId={gameData.your_id} 
+      onGameEnd={() => {}}
+    />;
 
   /* ── Discussion phase ── */
   if (showDiscussion) {
@@ -590,8 +842,48 @@ function Chat() {
             {isMyTurn ? '▶ YOUR TURN' : `PLAYER ${currentTurn + 1}'S TURN`}
           </div>
 
-          <button onClick={() => setMeetingOpen(true)} className="emergency-btn" style={{ marginTop: 'auto', width: '120px', height: '120px', borderRadius: '50%', alignSelf: 'center', background: 'radial-gradient(circle,rgba(185,28,28,.3) 0%,rgba(127,0,0,.15) 60%,transparent 100%)', border: '2px solid rgba(239,68,68,.5)', color: '#fca5a5', fontFamily: tok.font, fontWeight: '700', fontSize: '10px', letterSpacing: '2px', cursor: 'pointer', boxShadow: '0 0 30px rgba(185,28,28,.35),inset 0 0 20px rgba(185,28,28,.1)', transition: 'all .2s ease', textTransform: 'uppercase' }}>
-            EMERGENCY<br />MEETING
+          {/* Rules Button */}
+          <button 
+            onClick={() => setShowRules(true)} 
+            className="rules-btn" 
+            style={{ 
+              marginTop: 'auto', 
+              width: '120px', 
+              height: '120px', 
+              borderRadius: '50%', 
+              alignSelf: 'center', 
+              background: 'radial-gradient(circle, rgba(37,99,235,0.3) 0%, rgba(37,99,235,0.15) 60%, transparent 100%)', 
+              border: `2px solid ${tok.cyanDim}`, 
+              color: tok.cyan, 
+              fontFamily: tok.font, 
+              fontWeight: '700', 
+              fontSize: '10px', 
+              letterSpacing: '2px', 
+              cursor: 'pointer', 
+              boxShadow: '0 0 30px rgba(37,99,235,0.25), inset 0 0 20px rgba(37,99,235,0.05)', 
+              transition: 'all 0.2s ease', 
+              textTransform: 'uppercase',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'radial-gradient(circle, rgba(37,99,235,0.45) 0%, rgba(37,99,235,0.25) 60%, transparent 100%)';
+              e.currentTarget.style.borderColor = 'rgba(148,210,255,0.8)';
+              e.currentTarget.style.boxShadow = '0 0 50px rgba(37,99,235,0.5), inset 0 0 30px rgba(37,99,235,0.2)';
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'radial-gradient(circle, rgba(37,99,235,0.3) 0%, rgba(37,99,235,0.15) 60%, transparent 100%)';
+              e.currentTarget.style.borderColor = tok.cyanDim;
+              e.currentTarget.style.boxShadow = '0 0 30px rgba(37,99,235,0.25), inset 0 0 20px rgba(37,99,235,0.05)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            <span style={{ fontSize: '28px' }}>📖</span>
+            <span>RULES</span>
           </button>
         </div>
 
@@ -599,7 +891,9 @@ function Chat() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px', minWidth: 0 }}>
           <div ref={msgRef} style={{ flex: 1, overflowY: 'auto', marginBottom: '12px', paddingRight: '4px' }}>
             {messages.length === 0 && (
-              <div style={{ textAlign: 'center', color: tok.textDim, fontSize: '11px', letterSpacing: '3px', marginTop: '40px' }}>— NO MESSAGES YET —</div>
+              <div style={{ textAlign: 'center', color: tok.textDim, fontSize: '11px', letterSpacing: '3px', marginTop: '40px' }}>
+                — NO MESSAGES YET —
+              </div>
             )}
             {messages.map((msg, i) => {
               const pNum = playerMap[msg.sender_id];
@@ -611,19 +905,8 @@ function Chat() {
         </div>
       </div>
 
-      {/* Emergency modal */}
-      {meetingOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.93)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 1000, fontFamily: tok.font }}>
-          <div style={{ fontSize: '10px', letterSpacing: '8px', color: 'rgba(239,68,68,.6)', marginBottom: '16px' }}>⚠ ALERT</div>
-          <h1 style={{ color: tok.red, fontSize: 'clamp(28px,5vw,56px)', fontWeight: '900', letterSpacing: '6px', margin: 0, textShadow: '0 0 40px rgba(239,68,68,.8),0 0 80px rgba(239,68,68,.3)', textAlign: 'center' }}>
-            🚨 MEETING<br />CALLED
-          </h1>
-          <div style={{ width: '200px', height: '1px', background: 'linear-gradient(90deg,transparent,rgba(239,68,68,.5),transparent)', margin: '24px 0' }} />
-          <button onClick={() => setMeetingOpen(false)} style={{ padding: '12px 36px', background: 'transparent', border: '1px solid rgba(239,68,68,.4)', color: '#fca5a5', fontFamily: tok.font, fontWeight: '700', fontSize: '11px', letterSpacing: '4px', cursor: 'pointer', textTransform: 'uppercase' }}>
-            DISMISS
-          </button>
-        </div>
-      )}
+      {/* Rules Modal */}
+      {showRules && <RulesModal onClose={() => setShowRules(false)} />}
     </div>
   );
 }
