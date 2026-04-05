@@ -5,8 +5,8 @@ import Voting from './Voting';
 import JoinScreen from './JoinScreen';
 
 const supabase = createClient(
-  'https://ialzxgcgkzvgxjzgglkc.supabase.co',
-  'sb_publishable_RC7ubywKk9G_vz0eiuBlPw_NwGnvuev'
+  process.env.REACT_APP_SUPABASE_URL,
+  process.env.REACT_APP_SUPABASE_ANON_KEY
 );
 
 const PLAYER_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#a855f7'];
@@ -561,7 +561,7 @@ function Chat() {
   const joinServer = async () => {
     setJoining(true);
     try {
-      const res = await axios.get('http://localhost:8000/join');
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/join`);
       const data = res.data;
       setGameData(data);
       setGameStatus(data.status);
@@ -662,7 +662,7 @@ function Chat() {
     e.preventDefault();
     if (!inputText.trim()) return;
     try {
-      await axios.post('http://localhost:8000/send_message', {
+      await axios.post(`${process.env.REACT_APP_API_URL}/send_message`, {
         game_id: gameData.game_id, player_id: gameData.your_id, content: inputText
       });
       setInputText('');
@@ -678,7 +678,7 @@ function Chat() {
     e.preventDefault();
     if (!discussionInput.trim()) return;
     try {
-      await axios.post('http://localhost:8000/send_message', {
+      await axios.post(`${process.env.REACT_APP_API_URL}/send_message`, {
         game_id: gameData.game_id,
         player_id: gameData.your_id,
         content: discussionInput.trim()

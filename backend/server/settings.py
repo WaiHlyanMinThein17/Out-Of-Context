@@ -8,31 +8,25 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-# 1. Define BASE_DIR first (Required for load_dotenv to work)
+# Define BASE_DIR first (Required for load_dotenv to work)
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# 2. Load environment variables from the .env file in the backend root
 load_dotenv(os.path.join(BASE_DIR, '.env'))
+
+DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
+IS_PROD = DJANGO_ENV == 'production'
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = not IS_PROD
 
-# 3. Allow Docker/Localhost to access the server
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = [
+    'out-of-context-167456099297.us-central1.run.app'
+] if IS_PROD else ['localhost', '127.0.0.1', '0.0.0.0']
 
 # Application definition
-
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
     'corsheaders',  # Required for React to talk to Django
     'game',         # Your custom app
 ]
@@ -40,64 +34,18 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # MUST be at the top
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 # 4. CORS configuration
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = not IS_PROD
+CORS_ALLOWED_ORIGINS = ['https://outofcontext.vercel.app'] if IS_PROD else []
 
 ROOT_URLCONF = 'server.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
 WSGI_APPLICATION = 'server.wsgi.application'
-
-
-# Database (Using SQLite locally, though main game data is in Supabase)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-
-# Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
-
-# Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

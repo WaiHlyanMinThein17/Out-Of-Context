@@ -5,4 +5,6 @@ supabase
 openai
 requests
 django-cors-headers
+django-ratelimit
 python-dotenv
+gunicorn
