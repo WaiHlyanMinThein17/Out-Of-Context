@@ -16,10 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from game.views import health, join_game, send_message
+from game.views import health, join_game, send_message, end_discussion
 
 urlpatterns = [
     path("health/", health),
     path("join/", join_game),
     path('send_message', send_message),
+    path('end_discussion', end_discussion),
 ]

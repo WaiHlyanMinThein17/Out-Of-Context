@@ -133,7 +133,11 @@ def send_message(request):
         next_turn = (current_turn + 1) % 5
         if next_turn == 0:
             current_round += 1
-
+            
+        if current_round == 3 and prev_round == 2:
+            supabase.table("games").update({
+                "discussion_started_at": timezone.now().isoformat()
+            }).eq("game_id", game_id).execute()
         # ── Discussion phase AI logic ──────────────────────────────────────────
         if current_round >= 3:
             ai_res = supabase.table("players") \
@@ -355,3 +359,29 @@ def post_ai_discussion(game_id: str, ai_id: str):
         "sender_id": ai_id,
         "content": content
     }).execute()
+
+@csrf_exempt
+def end_discussion(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    data = json.loads(request.body)
+    game_id = data.get("game_id")
+
+    # Idempotency check — only transition once
+    game_res = supabase.table("games") \
+        .select("status") \
+        .eq("game_id", game_id) \
+        .single() \
+        .execute()
+
+    if game_res.data["status"] == "voting":
+        return JsonResponse({"status": "already_voting"})
+
+    now = timezone.now().isoformat()
+    supabase.table("games").update({
+        "status": "voting",
+        "voting_started_at": now
+    }).eq("game_id", game_id).execute()
+
+    return JsonResponse({"status": "voting", "voting_started_at": now})

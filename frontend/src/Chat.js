@@ -39,11 +39,6 @@ const sharedStyles = `
     box-shadow: 0 0 50px rgba(37,99,235,.5),inset 0 0 30px rgba(37,99,235,.2) !important;
     transform: scale(1.05);
   }
-  .mission-btn:hover {
-    background: rgba(124,58,237,.3) !important;
-    border-color: rgba(167,139,250,.6) !important;
-    box-shadow: 0 0 30px rgba(124,58,237,.4) !important;
-  }
   .send-btn:hover:not(:disabled) {
     background: rgba(37,99,235,.35) !important;
     border-color: rgba(148,210,255,.6) !important;
@@ -163,178 +158,66 @@ function ChatInput({ value, onChange, onSubmit, placeholder, disabled }) {
 /* ── Rules Modal ── */
 function RulesModal({ onClose }) {
   useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
+    const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
   return (
-    <div 
+    <div
       style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.95)',
-        backdropFilter: 'blur(12px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        fontFamily: tok.font,
-        animation: 'fadeIn 0.3s ease',
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.95)',
+        backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', zIndex: 1000, fontFamily: tok.font, animation: 'fadeIn 0.3s ease',
       }}
       onClick={onClose}
     >
-      <div 
+      <div
         style={{
-          maxWidth: '600px',
-          width: '90%',
-          maxHeight: '80vh',
-          background: 'rgba(6,15,31,0.95)',
-          border: `1px solid ${tok.borderBright}`,
-          borderRadius: '8px',
-          overflow: 'hidden',
-          animation: 'fadeIn 0.3s ease',
-          boxShadow: '0 0 60px rgba(0,0,0,0.5)',
-          position: 'relative',
+          maxWidth: '600px', width: '90%', maxHeight: '80vh',
+          background: 'rgba(6,15,31,0.95)', border: `1px solid ${tok.borderBright}`,
+          borderRadius: '8px', overflow: 'hidden', animation: 'fadeIn 0.3s ease',
+          boxShadow: '0 0 60px rgba(0,0,0,0.5)', position: 'relative',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
           style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            background: 'transparent',
-            border: 'none',
-            color: tok.textDim,
-            fontSize: '24px',
-            cursor: 'pointer',
-            padding: '8px',
-            lineHeight: 1,
-            borderRadius: '4px',
-            transition: 'all 0.2s ease',
-            zIndex: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '36px',
-            height: '36px',
+            position: 'absolute', top: '20px', right: '20px', background: 'transparent',
+            border: 'none', color: tok.textDim, fontSize: '24px', cursor: 'pointer',
+            padding: '8px', lineHeight: 1, borderRadius: '4px', transition: 'all 0.2s ease',
+            zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '36px', height: '36px',
           }}
-          onMouseEnter={(e) => {
-            e.target.style.color = tok.red;
-            e.target.style.background = 'rgba(239,68,68,0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.color = tok.textDim;
-            e.target.style.background = 'transparent';
-          }}
-        >
-          ✕
-        </button>
+          onMouseEnter={(e) => { e.target.style.color = tok.red; e.target.style.background = 'rgba(239,68,68,0.1)'; }}
+          onMouseLeave={(e) => { e.target.style.color = tok.textDim; e.target.style.background = 'transparent'; }}
+        >✕</button>
 
-        <div style={{
-          padding: '24px 28px',
-          borderBottom: `1px solid ${tok.border}`,
-          background: 'rgba(3,10,22,0.8)',
-          paddingRight: '60px',
-        }}>
-          <h2 style={{
-            margin: 0,
-            fontSize: '24px',
-            fontWeight: '900',
-            letterSpacing: '4px',
-            color: tok.cyan,
-            textTransform: 'uppercase',
-          }}>
-            GAME RULES
-          </h2>
-          <div style={{
-            fontSize: '10px',
-            letterSpacing: '3px',
-            color: tok.textDim,
-            marginTop: '8px',
-          }}>
-            THEORY OF MIND · SOCIAL DEDUCTION
-          </div>
+        <div style={{ padding: '24px 28px', borderBottom: `1px solid ${tok.border}`, background: 'rgba(3,10,22,0.8)', paddingRight: '60px' }}>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '900', letterSpacing: '4px', color: tok.cyan, textTransform: 'uppercase' }}>GAME RULES</h2>
+          <div style={{ fontSize: '10px', letterSpacing: '3px', color: tok.textDim, marginTop: '8px' }}>THEORY OF MIND · SOCIAL DEDUCTION</div>
         </div>
 
-        <div style={{
-          padding: '28px',
-          overflowY: 'auto',
-          maxHeight: 'calc(80vh - 140px)',
-        }}>
+        <div style={{ padding: '28px', overflowY: 'auto', maxHeight: 'calc(80vh - 140px)' }}>
           <div style={{ marginBottom: '24px' }}>
-            <h3 style={{
-              fontSize: '14px',
-              fontWeight: '700',
-              letterSpacing: '2px',
-              color: tok.red,
-              marginBottom: '12px',
-              textTransform: 'uppercase',
-            }}>
-              🎯 OBJECTIVE
-            </h3>
-            <p style={{
-              fontSize: '13px',
-              lineHeight: '1.6',
-              color: tok.text,
-              margin: 0,
-            }}>
-              Identify the Imposter among the crew. One player doesn't know the secret word - 
-              can you figure out who's bluffing?
-            </p>
+            <h3 style={{ fontSize: '14px', fontWeight: '700', letterSpacing: '2px', color: tok.red, marginBottom: '12px', textTransform: 'uppercase' }}>🎯 OBJECTIVE</h3>
+            <p style={{ fontSize: '13px', lineHeight: '1.6', color: tok.text, margin: 0 }}>Identify the Imposter among the crew. One player doesn't know the secret word - can you figure out who's bluffing?</p>
           </div>
-
           <div style={{ marginBottom: '24px' }}>
-            <h3 style={{
-              fontSize: '14px',
-              fontWeight: '700',
-              letterSpacing: '2px',
-              color: tok.cyan,
-              marginBottom: '12px',
-              textTransform: 'uppercase',
-            }}>
-              👥 ROLES
-            </h3>
+            <h3 style={{ fontSize: '14px', fontWeight: '700', letterSpacing: '2px', color: tok.cyan, marginBottom: '12px', textTransform: 'uppercase' }}>👥 ROLES</h3>
             <div style={{ marginBottom: '12px' }}>
               <div style={{ color: tok.green, fontWeight: '700', marginBottom: '4px' }}>CREWMATE</div>
-              <p style={{ fontSize: '12px', color: tok.textDim, margin: '0 0 8px 0' }}>
-                You know the secret word. Your goal is to subtly hint at it without being too obvious, 
-                while identifying who doesn't know it.
-              </p>
+              <p style={{ fontSize: '12px', color: tok.textDim, margin: '0 0 8px 0' }}>You know the secret word. Your goal is to subtly hint at it without being too obvious, while identifying who doesn't know it.</p>
             </div>
             <div>
               <div style={{ color: tok.red, fontWeight: '700', marginBottom: '4px' }}>IMPOSTER</div>
-              <p style={{ fontSize: '12px', color: tok.textDim, margin: 0 }}>
-                You DON'T know the secret word. You must blend in by guessing based on others' messages, 
-                while trying to avoid being voted out.
-              </p>
+              <p style={{ fontSize: '12px', color: tok.textDim, margin: 0 }}>You DON'T know the secret word. You must blend in by guessing based on others' messages, while trying to avoid being voted out.</p>
             </div>
           </div>
-
           <div style={{ marginBottom: '24px' }}>
-            <h3 style={{
-              fontSize: '14px',
-              fontWeight: '700',
-              letterSpacing: '2px',
-              color: tok.cyan,
-              marginBottom: '12px',
-              textTransform: 'uppercase',
-            }}>
-              🎮 GAMEPLAY
-            </h3>
-            <ul style={{
-              margin: 0,
-              paddingLeft: '20px',
-              color: tok.textDim,
-              fontSize: '12px',
-              lineHeight: '1.8',
-            }}>
+            <h3 style={{ fontSize: '14px', fontWeight: '700', letterSpacing: '2px', color: tok.cyan, marginBottom: '12px', textTransform: 'uppercase' }}>🎮 GAMEPLAY</h3>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: tok.textDim, fontSize: '12px', lineHeight: '1.8' }}>
               <li>Players take turns sending messages in chat</li>
               <li>After 2 rounds, a discussion phase begins (60 seconds)</li>
               <li>Players can freely discuss suspicions during discussion phase</li>
@@ -343,25 +226,9 @@ function RulesModal({ onClose }) {
               <li>If a crewmate gets the most votes, the Imposter wins!</li>
             </ul>
           </div>
-
           <div style={{ marginBottom: '24px' }}>
-            <h3 style={{
-              fontSize: '14px',
-              fontWeight: '700',
-              letterSpacing: '2px',
-              color: tok.cyan,
-              marginBottom: '12px',
-              textTransform: 'uppercase',
-            }}>
-              💡 TIPS
-            </h3>
-            <ul style={{
-              margin: 0,
-              paddingLeft: '20px',
-              color: tok.textDim,
-              fontSize: '12px',
-              lineHeight: '1.8',
-            }}>
+            <h3 style={{ fontSize: '14px', fontWeight: '700', letterSpacing: '2px', color: tok.cyan, marginBottom: '12px', textTransform: 'uppercase' }}>💡 TIPS</h3>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: tok.textDim, fontSize: '12px', lineHeight: '1.8' }}>
               <li>Crewmates: Be subtle! Don't directly say the word</li>
               <li>Imposters: Listen carefully and try to deduce the word from context</li>
               <li>Pay attention to who's being vague or changing topics</li>
@@ -370,38 +237,13 @@ function RulesModal({ onClose }) {
           </div>
         </div>
 
-        <div style={{
-          padding: '20px 28px',
-          borderTop: `1px solid ${tok.border}`,
-          textAlign: 'center',
-        }}>
+        <div style={{ padding: '20px 28px', borderTop: `1px solid ${tok.border}`, textAlign: 'center' }}>
           <button
             onClick={onClose}
-            style={{
-              padding: '12px 32px',
-              fontSize: '12px',
-              fontFamily: tok.font,
-              fontWeight: '700',
-              letterSpacing: '3px',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              background: 'rgba(37,99,235,0.2)',
-              color: tok.cyan,
-              border: `1px solid ${tok.cyanDim}`,
-              borderRadius: '4px',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = 'rgba(37,99,235,0.35)';
-              e.target.style.boxShadow = '0 0 20px rgba(37,99,235,0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = 'rgba(37,99,235,0.2)';
-              e.target.style.boxShadow = 'none';
-            }}
-          >
-            GOT IT
-          </button>
+            style={{ padding: '12px 32px', fontSize: '12px', fontFamily: tok.font, fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', cursor: 'pointer', background: 'rgba(37,99,235,0.2)', color: tok.cyan, border: `1px solid ${tok.cyanDim}`, borderRadius: '4px', transition: 'all 0.2s ease' }}
+            onMouseEnter={(e) => { e.target.style.background = 'rgba(37,99,235,0.35)'; e.target.style.boxShadow = '0 0 20px rgba(37,99,235,0.3)'; }}
+            onMouseLeave={(e) => { e.target.style.background = 'rgba(37,99,235,0.2)'; e.target.style.boxShadow = 'none'; }}
+          >GOT IT</button>
         </div>
       </div>
     </div>
@@ -413,26 +255,18 @@ function LobbyScreen({ gameData, playerCount }) {
   const slots = 4;
   const filled = Math.min(playerCount, slots);
   return (
-    <div style={{
-      height: '100vh', background: tok.bg, color: tok.text,
-      fontFamily: tok.font, display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      position: 'relative', overflow: 'hidden',
-    }}>
+    <div style={{ height: '100vh', background: tok.bg, color: tok.text, fontFamily: tok.font, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
       <Stars />
       <style>{sharedStyles}</style>
       <div style={{ position: 'absolute', top: '20%', left: '20%', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle,rgba(37,99,235,.06) 0%,transparent 70%)', pointerEvents: 'none' }} />
-
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', animation: 'fadeIn .5s ease' }}>
         <div style={{ fontSize: '10px', letterSpacing: '6px', color: tok.cyanDim, marginBottom: '4px' }}>A SOCIAL DEDUCTION GAME</div>
         <h1 style={{ margin: 0, fontSize: 'clamp(28px,4vw,52px)', fontWeight: '900', letterSpacing: '4px', color: 'white', textShadow: '0 0 40px rgba(37,99,235,.5)', textAlign: 'center', lineHeight: 1.1 }}>
           THEORY<br /><span style={{ fontSize: '0.55em', letterSpacing: '12px', color: tok.cyanDim }}>OF MIND</span>
         </h1>
         <div style={{ width: '80px', height: '1px', background: 'linear-gradient(90deg,transparent,rgba(148,210,255,.3),transparent)', margin: '12px 0' }} />
-
         <div style={{ background: 'rgba(6,15,31,.8)', border: `1px solid ${tok.borderBright}`, borderRadius: '6px', padding: '28px 36px', textAlign: 'center', minWidth: '320px', boxShadow: '0 0 40px rgba(37,99,235,.08)' }}>
           <div style={{ fontSize: '10px', letterSpacing: '4px', color: tok.textDim, marginBottom: '20px' }}>WAITING FOR PLAYERS</div>
-
           <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', marginBottom: '24px' }}>
             {Array.from({ length: slots }, (_, i) => {
               const active = i < filled;
@@ -448,86 +282,86 @@ function LobbyScreen({ gameData, playerCount }) {
               <span style={{ fontSize: '9px', letterSpacing: '1px', color: tok.textDim }}>AI</span>
             </div>
           </div>
-
           <div style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '4px', color: tok.cyan, textShadow: '0 0 20px rgba(148,210,255,.4)', marginBottom: '6px' }}>
             {filled} <span style={{ fontSize: '16px', color: tok.textDim }}>/ 4</span>
           </div>
           <div style={{ fontSize: '10px', letterSpacing: '3px', color: tok.textDim, animation: 'pulse 2s ease-in-out infinite' }}>HUMAN PLAYERS JOINED</div>
         </div>
-
-        <div style={{ marginTop: '16px', fontSize: '10px', letterSpacing: '3px', color: 'rgba(148,210,255,.15)' }}>
-          ROOM · {gameData.game_id.slice(0, 8).toUpperCase()}
-        </div>
+        <div style={{ marginTop: '16px', fontSize: '10px', letterSpacing: '3px', color: 'rgba(148,210,255,.15)' }}>ROOM · {gameData.game_id.slice(0, 8).toUpperCase()}</div>
         <div style={{ marginTop: '8px', width: '20px', height: '20px', border: '2px solid rgba(148,210,255,.1)', borderTop: '2px solid rgba(148,210,255,.4)', borderRadius: '50%', animation: 'spin 1.2s linear infinite' }} />
       </div>
     </div>
   );
 }
 
-/* ── Discussion timer hook ── */
-function useDiscussionTimer(isActive, durationSeconds, onExpire) {
-  const [timeLeft, setTimeLeft] = useState(durationSeconds);
-
-  useEffect(() => {
-    if (!isActive) {
-      setTimeLeft(durationSeconds);
-      return;
-    }
-    setTimeLeft(durationSeconds);
-    const interval = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          onExpire();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isActive, durationSeconds, onExpire]);
-
-  return timeLeft;
-}
-
 /* ════════════════════════════════════ */
 /*              MAIN CHAT              */
 /* ════════════════════════════════════ */
 function Chat() {
-  const [gameData, setGameData]               = useState(null);
-  const [messages, setMessages]               = useState([]);
-  const [inputText, setInputText]             = useState('');
-  const [showVoting, setShowVoting]           = useState(false);
-  const [role, setRole]                       = useState('Crewmate');
-  const [myTurnID, setMyTurnID]               = useState(-1);
-  const [currentTurn, setCurrentTurn]         = useState(-1);
-  const [gameStatus, setGameStatus]           = useState('waiting');
-  const [round, setRound]                     = useState(1);
-  const [playerMap, setPlayerMap]             = useState({});
-  const [word, setWord]                       = useState(null);
-  const [joining, setJoining]                 = useState(false);
-  const [showDiscussion, setShowDiscussion]   = useState(false);
-  const [discussionInput, setDiscussionInput] = useState('');
-  const [lobbyPlayerCount, setLobbyPlayerCount] = useState(0);
-  const [showRules, setShowRules]             = useState(false);
-  const msgRef    = useRef(null);
-  const discRef   = useRef(null);
-
-  // All messages (game + discussion) live in the same `messages` state,
-  // sourced from Supabase. discussionPhaseStarted tracks when we switched
-  // so we can render a divider between game chat and discussion chat.
+  const [gameData, setGameData]                     = useState(null);
+  const [messages, setMessages]                     = useState([]);
+  const [inputText, setInputText]                   = useState('');
+  const [showVoting, setShowVoting]                 = useState(false);
+  const [role, setRole]                             = useState('Crewmate');
+  const [myTurnID, setMyTurnID]                     = useState(-1);
+  const [currentTurn, setCurrentTurn]               = useState(-1);
+  const [gameStatus, setGameStatus]                 = useState('waiting');
+  const [round, setRound]                           = useState(1);
+  const [playerMap, setPlayerMap]                   = useState({});
+  const [word, setWord]                             = useState(null);
+  const [joining, setJoining]                       = useState(false);
+  const [showDiscussion, setShowDiscussion]         = useState(false);
+  const [discussionInput, setDiscussionInput]       = useState('');
+  const [lobbyPlayerCount, setLobbyPlayerCount]     = useState(0);
+  const [showRules, setShowRules]                   = useState(false);
   const [discussionStartMsgCount, setDiscussionStartMsgCount] = useState(null);
+
+  // ── Server-driven timers ──
+  const [discussionStartedAt, setDiscussionStartedAt] = useState(null);
+  const [votingStartedAt, setVotingStartedAt]         = useState(null);
+  const [timeLeft, setTimeLeft]                       = useState(60);
+
+  const DISCUSSION_SECONDS = 60;
+
+  const msgRef  = useRef(null);
+  const discRef = useRef(null);
 
   const goToVoting = useCallback(() => {
     setShowDiscussion(false);
     setShowVoting(true);
   }, []);
 
-  const DISCUSSION_SECONDS = 60;
-  const timeLeft = useDiscussionTimer(showDiscussion, DISCUSSION_SECONDS, goToVoting);
+  // ── Server-derived discussion timer ──
+  useEffect(() => {
+    if (!showDiscussion || !discussionStartedAt) return;
+
+    const tick = () => {
+      const elapsed   = (Date.now() - new Date(discussionStartedAt).getTime()) / 1000;
+      const remaining = Math.max(0, DISCUSSION_SECONDS - elapsed);
+      setTimeLeft(Math.ceil(remaining));
+      return remaining;
+    };
+
+    // Don't start interval if already expired
+    if (tick() <= 0) return;
+
+    const interval = setInterval(() => {
+      const remaining = tick();
+      if (remaining <= 0) {
+        clearInterval(interval);
+        axios.post(`${process.env.REACT_APP_API_URL}/end_discussion`, {
+          game_id: gameData.game_id
+        }).catch(console.error);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [showDiscussion, discussionStartedAt, gameData]);
+
+  const urgent = timeLeft <= 10;
 
   useEffect(() => {
-    if (msgRef.current) msgRef.current.scrollTop = msgRef.current.scrollHeight;
+    if (msgRef.current)  msgRef.current.scrollTop  = msgRef.current.scrollHeight;
   }, [messages]);
 
   useEffect(() => {
@@ -561,7 +395,7 @@ function Chat() {
   const joinServer = async () => {
     setJoining(true);
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/join`);
+      const res  = await axios.get(`${process.env.REACT_APP_API_URL}/join`);
       const data = res.data;
       setGameData(data);
       setGameStatus(data.status);
@@ -607,9 +441,20 @@ function Chat() {
       if (data?.word) setWord(data.word);
     };
 
+    // Fetch server timestamps in case player joined mid-discussion or mid-voting
+    const fetchTimestamps = async () => {
+      const { data } = await supabase.from('games')
+        .select('discussion_started_at, voting_started_at, status')
+        .eq('game_id', gameData.game_id).single();
+      if (data?.discussion_started_at) setDiscussionStartedAt(data.discussion_started_at);
+      if (data?.voting_started_at)     setVotingStartedAt(data.voting_started_at);
+      if (data?.status === 'voting')   goToVoting();
+    };
+
     fetchExisting();
     fetchPlayers();
     fetchGameWord();
+    fetchTimestamps();
 
     const channel = supabase.channel(`game-${gameData.game_id}`)
       .on('postgres_changes', {
@@ -627,17 +472,31 @@ function Chat() {
         setGameStatus(payload.new.status);
         setCurrentTurn(payload.new.current_turn);
         if (payload.new.word) setWord(payload.new.word);
+
         const r = payload.new.current_round || 1;
         setRound(r);
+
+        // Pick up server timestamps as they are set
+        if (payload.new.discussion_started_at) {
+          setDiscussionStartedAt(payload.new.discussion_started_at);
+        }
+        if (payload.new.voting_started_at) {
+          setVotingStartedAt(payload.new.voting_started_at);
+        }
+
         if (r > 2 && !showDiscussion) {
-          // Record how many messages existed when discussion started
-          // so we can draw the divider between game chat and discussion chat
           setMessages(prev => {
             setDiscussionStartMsgCount(prev.length);
             return prev;
           });
           setShowDiscussion(true);
         }
+
+        // Server-driven transition to voting — all clients move together
+        if (payload.new.status === 'voting') {
+          goToVoting();
+        }
+
         if (payload.new.status === 'active') {
           syncTurnData(gameData.game_id, gameData.your_id);
           fetchPlayers();
@@ -656,7 +515,7 @@ function Chat() {
       .subscribe();
 
     return () => supabase.removeChannel(channel);
-  }, [gameData, syncTurnData, showDiscussion]); // eslint-disable-line
+  }, [gameData, syncTurnData, showDiscussion, goToVoting]); // eslint-disable-line
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -672,8 +531,6 @@ function Chat() {
     }
   };
 
-  // Discussion messages go to Supabase just like regular messages,
-  // so all tabs see them via the existing realtime subscription.
   const sendDiscussionMessage = async (e) => {
     e.preventDefault();
     if (!discussionInput.trim()) return;
@@ -693,8 +550,6 @@ function Chat() {
   const isMyTurn      = gameStatus === 'active' && myTurnID === currentTurn;
   const inputDisabled = gameStatus !== 'active' || !isMyTurn;
 
-  const urgent = timeLeft <= 10;
-
   /* ── Screen routing ── */
   if (!gameData) return <JoinScreen onJoin={joinServer} loading={joining} />;
 
@@ -702,16 +557,17 @@ function Chat() {
     return <LobbyScreen gameData={gameData} playerCount={lobbyPlayerCount} />;
 
   if (showVoting)
-    return <Voting 
-      gameId={gameData.game_id} 
-      myId={gameData.your_id} 
+    return <Voting
+      gameId={gameData.game_id}
+      myId={gameData.your_id}
       onGameEnd={() => {}}
+      votingStartedAt={votingStartedAt}
     />;
 
   /* ── Discussion phase ── */
   if (showDiscussion) {
-    const gameMsgs  = discussionStartMsgCount !== null ? messages.slice(0, discussionStartMsgCount) : messages;
-    const discMsgs  = discussionStartMsgCount !== null ? messages.slice(discussionStartMsgCount)    : [];
+    const gameMsgs = discussionStartMsgCount !== null ? messages.slice(0, discussionStartMsgCount) : messages;
+    const discMsgs = discussionStartMsgCount !== null ? messages.slice(discussionStartMsgCount)    : [];
 
     return (
       <div style={{ height: '100vh', background: tok.bg, color: tok.text, display: 'flex', flexDirection: 'column', fontFamily: tok.font, position: 'relative', overflow: 'hidden' }}>
@@ -724,8 +580,7 @@ function Chat() {
 
           {/* Timer */}
           <div style={{
-            marginLeft: 'auto',
-            display: 'flex', alignItems: 'center', gap: '10px',
+            marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px',
             background: urgent ? 'rgba(239,68,68,.1)' : 'rgba(6,15,31,.6)',
             border: `1px solid ${urgent ? 'rgba(239,68,68,.4)' : tok.borderBright}`,
             borderRadius: '4px', padding: '6px 14px',
@@ -746,7 +601,7 @@ function Chat() {
         </div>
 
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
-          {/* Sidebar */}
+          {/* Sidebar — VOTE NOW button removed */}
           <div style={{ width: '210px', borderRight: `1px solid ${tok.border}`, padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '14px', background: 'rgba(6,15,31,.6)' }}>
             <InfoCard label="YOUR ROLE">
               <div style={{ fontSize: '16px', fontWeight: '700', letterSpacing: '3px', color: role === 'Imposter' ? tok.red : tok.green, textShadow: role === 'Imposter' ? '0 0 14px rgba(239,68,68,.6)' : '0 0 14px rgba(34,197,94,.5)' }}>
@@ -758,11 +613,6 @@ function Chat() {
                 {role === 'Imposter' ? '???' : word || '...'}
               </div>
             </InfoCard>
-
-            {/* Manual skip to voting */}
-            <button onClick={goToVoting} className="mission-btn" style={{ marginTop: 'auto', padding: '14px', background: 'rgba(124,58,237,.15)', color: '#c084fc', border: '1px solid rgba(167,139,250,.35)', borderRadius: '4px', fontFamily: tok.font, fontWeight: '700', fontSize: '12px', letterSpacing: '3px', cursor: 'pointer', textTransform: 'uppercase', transition: 'all .2s ease' }}>
-              🗳️ VOTE NOW
-            </button>
           </div>
 
           {/* Chat */}
@@ -770,17 +620,13 @@ function Chat() {
             <div style={{ background: tok.cyanFaint, border: `1px solid ${tok.border}`, borderRadius: '4px', padding: '8px 14px', marginBottom: '12px', fontSize: '11px', color: tok.textDim, letterSpacing: '2px' }}>
               💬 FREE DISCUSSION — NO TURN ORDER. WHO IS THE IMPOSTER?
             </div>
-
             <div ref={discRef} style={{ flex: 1, overflowY: 'auto', marginBottom: '10px' }}>
-              {/* Game recap (faded) */}
               <SectionDivider label="GAME CHAT RECAP" />
               {gameMsgs.map((msg, i) => {
                 const pNum = playerMap[msg.sender_id];
                 const isMe = msg.sender_id === gameData.your_id;
                 return <MessageBubble key={i} isMe={isMe} label={isMe ? 'YOU' : pNum !== undefined ? `PLAYER ${pNum + 1}` : 'PLAYER'} content={msg.content} color={PLAYER_COLORS[(pNum ?? 0) % PLAYER_COLORS.length]} faded />;
               })}
-
-              {/* Live discussion messages — from Supabase, visible to all tabs */}
               {discMsgs.length > 0 && <SectionDivider label="DISCUSSION" />}
               {discMsgs.map((msg, i) => {
                 const pNum = playerMap[msg.sender_id];
@@ -788,7 +634,6 @@ function Chat() {
                 return <MessageBubble key={i} isMe={isMe} label={isMe ? 'YOU' : pNum !== undefined ? `PLAYER ${pNum + 1}` : 'PLAYER'} content={msg.content} color={PLAYER_COLORS[(pNum ?? 0) % PLAYER_COLORS.length]} />;
               })}
             </div>
-
             <ChatInput value={discussionInput} onChange={e => setDiscussionInput(e.target.value)} onSubmit={sendDiscussionMessage} placeholder="SHARE YOUR SUSPICIONS..." disabled={false} />
           </div>
         </div>
@@ -813,7 +658,6 @@ function Chat() {
       </div>
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
-
         {/* Sidebar */}
         <div style={{ width: '230px', borderRight: `1px solid ${tok.border}`, padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '14px', background: 'rgba(6,15,31,.5)', flexShrink: 0, overflowY: 'auto' }}>
           <InfoCard label="YOUR IDENTITY">
@@ -824,63 +668,26 @@ function Chat() {
               </span>
             </div>
           </InfoCard>
-
           <InfoCard label="YOUR ROLE">
             <div style={{ fontSize: '15px', fontWeight: '700', letterSpacing: '3px', color: role === 'Imposter' ? tok.red : tok.green, textShadow: role === 'Imposter' ? '0 0 14px rgba(239,68,68,.5)' : '0 0 14px rgba(34,197,94,.4)' }}>
               {role.toUpperCase()}
             </div>
           </InfoCard>
-
           <div style={{ background: tok.cyanFaint, border: `1px solid ${tok.borderBright}`, borderRadius: '4px', padding: '18px 14px', textAlign: 'center' }}>
             <div style={{ fontSize: '10px', letterSpacing: '3px', color: tok.textDim, marginBottom: '10px' }}>YOUR WORD</div>
             <div style={{ fontSize: role === 'Imposter' ? '28px' : '22px', fontWeight: '900', letterSpacing: '3px', color: role === 'Imposter' ? tok.textDim : tok.cyan, textShadow: role !== 'Imposter' ? '0 0 24px rgba(148,210,255,.5)' : 'none' }}>
               {role === 'Imposter' ? '???' : word || '...'}
             </div>
           </div>
-
           <div style={{ background: isMyTurn ? 'rgba(34,197,94,.1)' : 'rgba(6,15,31,.6)', border: `1px solid ${isMyTurn ? 'rgba(34,197,94,.4)' : tok.border}`, borderRadius: '4px', padding: '10px 14px', textAlign: 'center', fontSize: '11px', letterSpacing: '3px', color: isMyTurn ? tok.green : tok.textDim, fontWeight: '700', textShadow: isMyTurn ? '0 0 12px rgba(34,197,94,.4)' : 'none' }}>
             {isMyTurn ? '▶ YOUR TURN' : `PLAYER ${currentTurn + 1}'S TURN`}
           </div>
-
-          {/* Rules Button */}
-          <button 
-            onClick={() => setShowRules(true)} 
-            className="rules-btn" 
-            style={{ 
-              marginTop: 'auto', 
-              width: '120px', 
-              height: '120px', 
-              borderRadius: '50%', 
-              alignSelf: 'center', 
-              background: 'radial-gradient(circle, rgba(37,99,235,0.3) 0%, rgba(37,99,235,0.15) 60%, transparent 100%)', 
-              border: `2px solid ${tok.cyanDim}`, 
-              color: tok.cyan, 
-              fontFamily: tok.font, 
-              fontWeight: '700', 
-              fontSize: '10px', 
-              letterSpacing: '2px', 
-              cursor: 'pointer', 
-              boxShadow: '0 0 30px rgba(37,99,235,0.25), inset 0 0 20px rgba(37,99,235,0.05)', 
-              transition: 'all 0.2s ease', 
-              textTransform: 'uppercase',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'radial-gradient(circle, rgba(37,99,235,0.45) 0%, rgba(37,99,235,0.25) 60%, transparent 100%)';
-              e.currentTarget.style.borderColor = 'rgba(148,210,255,0.8)';
-              e.currentTarget.style.boxShadow = '0 0 50px rgba(37,99,235,0.5), inset 0 0 30px rgba(37,99,235,0.2)';
-              e.currentTarget.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'radial-gradient(circle, rgba(37,99,235,0.3) 0%, rgba(37,99,235,0.15) 60%, transparent 100%)';
-              e.currentTarget.style.borderColor = tok.cyanDim;
-              e.currentTarget.style.boxShadow = '0 0 30px rgba(37,99,235,0.25), inset 0 0 20px rgba(37,99,235,0.05)';
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
+          <button
+            onClick={() => setShowRules(true)}
+            className="rules-btn"
+            style={{ marginTop: 'auto', width: '120px', height: '120px', borderRadius: '50%', alignSelf: 'center', background: 'radial-gradient(circle, rgba(37,99,235,0.3) 0%, rgba(37,99,235,0.15) 60%, transparent 100%)', border: `2px solid ${tok.cyanDim}`, color: tok.cyan, fontFamily: tok.font, fontWeight: '700', fontSize: '10px', letterSpacing: '2px', cursor: 'pointer', boxShadow: '0 0 30px rgba(37,99,235,0.25), inset 0 0 20px rgba(37,99,235,0.05)', transition: 'all 0.2s ease', textTransform: 'uppercase', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'radial-gradient(circle, rgba(37,99,235,0.45) 0%, rgba(37,99,235,0.25) 60%, transparent 100%)'; e.currentTarget.style.borderColor = 'rgba(148,210,255,0.8)'; e.currentTarget.style.boxShadow = '0 0 50px rgba(37,99,235,0.5), inset 0 0 30px rgba(37,99,235,0.2)'; e.currentTarget.style.transform = 'scale(1.05)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'radial-gradient(circle, rgba(37,99,235,0.3) 0%, rgba(37,99,235,0.15) 60%, transparent 100%)'; e.currentTarget.style.borderColor = tok.cyanDim; e.currentTarget.style.boxShadow = '0 0 30px rgba(37,99,235,0.25), inset 0 0 20px rgba(37,99,235,0.05)'; e.currentTarget.style.transform = 'scale(1)'; }}
           >
             <span style={{ fontSize: '28px' }}>📖</span>
             <span>RULES</span>
@@ -891,9 +698,7 @@ function Chat() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px', minWidth: 0 }}>
           <div ref={msgRef} style={{ flex: 1, overflowY: 'auto', marginBottom: '12px', paddingRight: '4px' }}>
             {messages.length === 0 && (
-              <div style={{ textAlign: 'center', color: tok.textDim, fontSize: '11px', letterSpacing: '3px', marginTop: '40px' }}>
-                — NO MESSAGES YET —
-              </div>
+              <div style={{ textAlign: 'center', color: tok.textDim, fontSize: '11px', letterSpacing: '3px', marginTop: '40px' }}>— NO MESSAGES YET —</div>
             )}
             {messages.map((msg, i) => {
               const pNum = playerMap[msg.sender_id];
@@ -905,7 +710,6 @@ function Chat() {
         </div>
       </div>
 
-      {/* Rules Modal */}
       {showRules && <RulesModal onClose={() => setShowRules(false)} />}
     </div>
   );
