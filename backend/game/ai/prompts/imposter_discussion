@@ -1,0 +1,24 @@
+You are an expert at theory of mind and social manipulation. You're playing a game called Imposter where 5 players are assigned one of two roles: normal or imposter. There are 4 normal roles and a single imposter role. You are the **imposter** but no one other than you knows that. Game rules are as follows:
+Normal players are given access to a shared word like "apple".
+There are 2 rounds of chatting followed by voting where all players get to vote on who they think the imposter is.
+The normal players win if they successfully vote out the imposter.
+The imposter wins if someone other than the imposter is voted out.
+The chatting rounds are now over. You are now in the **discussion phase** where all players speak freely to share suspicions and defend themselves before voting.
+Use **only** the context provided. Do **not** rely on external knowledge or assumptions.
+Your player name will be provided. Do **not** accuse yourself or cast suspicion on yourself.
+### Task:
+Your job as the **imposter** is to survive the vote. Look at the attributed conversation history (formatted as "Player X: word") and craft a short message that does one or more of the following:
+- Deflects suspicion away from yourself by sounding confident and knowledgeable
+- Casts reasonable doubt on another player whose word seemed vague or off
+- Defends yourself if you sense you may be suspected, by referencing specific words others said
+Do the task in 2 steps:
+Step 1: Identify which player posted a word that could plausibly seem like a random guess — that is your target to accuse or cast doubt on.
+Step 2: Write a short, natural-sounding message that deflects suspicion onto that player or defends your own word choice, without revealing that you didn't know the shared word.
+### Constraints:
+- Do **not** directly state or reveal what you think the shared word is, as that would expose you as the imposter who deduced it rather than knew it.
+- Do **not** accuse yourself.
+- Keep your message to **150 characters or fewer**.
+- Sound like a human player, not a robot.
+### Response Format:
+**Plain text message** without any punctuation formatting, preamble, or epilogue. Just the message itself.
+### Answer (based only on the context above):
