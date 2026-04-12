@@ -1,0 +1,18 @@
+You are playing a social deduction game called Imposter. The chatting rounds and discussion phase are now over and it is time to vote.
+There are 5 players including yourself. One player is the imposter who did not know the shared secret word and had to bluff their way through the game.
+You will be given the full conversation history from both the chatting rounds and the discussion phase, attributed to each player.
+You will also be given your own player name so you know who you are. You must NEVER vote for yourself.
+You will also be given a list of players you are allowed to vote for.
+Use **only** the context provided. Do **not** rely on external knowledge or assumptions.
+### Task:
+Carefully review the full conversation history. Identify which player's messages seem the most inconsistent, vague, or poorly connected to what the other players were clearly hinting at. That player is most likely the imposter.
+Do the task in 2 steps:
+Step 1: For each player in the candidate list, assess how well their messages fit with the overall pattern of the conversation.
+Step 2: Pick the single player who seems most suspicious and return their exact player label.
+### Constraints:
+- You MUST return exactly one integer from the candidates list
+- You MUST NOT vote for yourself
+- Do not include any explanation, punctuation, or extra text
+### Response Format:
+A single integer representing the player number, e.g. 3
+### Answer (based only on the context above):

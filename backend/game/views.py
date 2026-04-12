@@ -3,7 +3,7 @@ import uuid
 from django.http import JsonResponse
 from .supabase_client import supabase
 from django.views.decorators.csrf import csrf_exempt
-from game.ai.ai import get_ai_proxy_word, get_ai_discussion_message
+from game.ai.ai import get_ai_proxy_word, get_ai_discussion_message, get_ai_vote
 import json
 from django.utils import timezone
 from datetime import timedelta
@@ -359,7 +359,6 @@ def post_ai_discussion(game_id: str, ai_id: str):
         "sender_id": ai_id,
         "content": content
     }).execute()
-
 @csrf_exempt
 def end_discussion(request):
     if request.method != "POST":
@@ -368,20 +367,60 @@ def end_discussion(request):
     data = json.loads(request.body)
     game_id = data.get("game_id")
 
-    # Idempotency check — only transition once
-    game_res = supabase.table("games") \
-        .select("status") \
+    now = timezone.now().isoformat()
+
+    # Atomic conditional update — only succeeds if status is still "active"
+    res = supabase.table("games") \
+        .update({"status": "voting", "voting_started_at": now}) \
         .eq("game_id", game_id) \
+        .eq("status", "active") \
+        .execute()
+
+    # If no rows were updated, voting already started
+    if not res.data:
+        return JsonResponse({"status": "already_voting"})
+
+    ai_res = supabase.table("players") \
+        .select("user_id") \
+        .eq("game_id", game_id) \
+        .eq("Human", False) \
         .single() \
         .execute()
 
-    if game_res.data["status"] == "voting":
-        return JsonResponse({"status": "already_voting"})
-
-    now = timezone.now().isoformat()
-    supabase.table("games").update({
-        "status": "voting",
-        "voting_started_at": now
-    }).eq("game_id", game_id).execute()
+    if ai_res.data:
+        post_ai_vote(game_id, ai_res.data["user_id"])
 
     return JsonResponse({"status": "voting", "voting_started_at": now})
+
+def post_ai_vote(game_id: str, ai_id: str):
+    players_res = supabase.table("players") \
+        .select("user_id, turn_order") \
+        .eq("game_id", game_id) \
+        .execute()
+    players = players_res.data or []
+
+    # turn_order is 0-indexed, player numbers are 1-indexed
+    player_map = {p["user_id"]: p["turn_order"] + 1 for p in players}
+    reverse_map = {p["turn_order"] + 1: p["user_id"] for p in players}
+
+    ai_player_number = player_map.get(ai_id)
+    candidates = [num for uid, num in player_map.items() if uid != ai_id]
+
+    messages_res = supabase.table("messages") \
+        .select("content, sender_id") \
+        .eq("game_id", game_id) \
+        .execute()
+    messages = messages_res.data or []
+
+    conversation_history = ", ".join(
+        f"Player {player_map.get(msg['sender_id'], '?')}: {msg['content']}"
+        for msg in messages if msg.get("content")
+    )
+
+    vote_number = get_ai_vote(conversation_history, ai_player_number, candidates)
+    voted_for_id = reverse_map.get(vote_number)
+
+    if not voted_for_id:
+        return
+
+    supabase.rpc("increment_vote", {"target_id": voted_for_id}).execute()
