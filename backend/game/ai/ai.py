@@ -39,7 +39,7 @@ def get_ai_proxy_word(conversation_history: str, is_imposter: bool, shared_word:
             instructions += f'Shared word: {shared_word}'
 
     response = client.responses.parse(
-        model="gpt-4o",
+        model="gpt-5.4",
         instructions=instructions,
         input=conversation_history,
         max_output_tokens=16,
@@ -74,7 +74,7 @@ def get_ai_discussion_message(
     instructions += f'\nYou are: {ai_player_name}. Do not accuse yourself.'
 
     response = client.responses.parse(
-        model="gpt-4o",
+        model="gpt-5.4",
         instructions=instructions,
         input=conversation_history,
         max_output_tokens=50,  # ~150 chars
@@ -104,7 +104,7 @@ def get_ai_vote(
     instructions += f'\nCandidates you may vote for (player numbers): {", ".join(str(c) for c in candidates)}'
 
     response = client.responses.parse(
-        model="gpt-4o",
+        model="gpt-5.4",
         instructions=instructions,
         input=conversation_history,
         max_output_tokens=16,
